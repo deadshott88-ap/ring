@@ -590,9 +590,6 @@ $('roomCodeDisplay').onclick = () => {
 };
 
 $('createBtn').onclick = async () => {
-  if (firebaseConfig.databaseURL === 'PASTE_YOUR_DATABASE_URL_HERE') {
-    showToast('⚠️ set your Firebase databaseURL first!', 4000); return;
-  }
   await getMedia();
   switchToCall(myCode);
   $('connState').textContent = 'waiting for friend…';
@@ -601,9 +598,6 @@ $('createBtn').onclick = async () => {
 };
 
 $('joinBtn').onclick = async () => {
-  if (firebaseConfig.databaseURL === 'PASTE_YOUR_DATABASE_URL_HERE') {
-    showToast('⚠️ set your Firebase databaseURL first!', 4000); return;
-  }
   const code = $('joinInput').value.trim().toUpperCase();
   if (code.length < 4) { showToast('enter the 4-letter room code'); return; }
   await getMedia();
