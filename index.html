@@ -463,15 +463,19 @@ function genCode() {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// WebRTC
-const ICE = { iceServers: [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-]};
+// fetch Metered TURN credentials
+async function getIceServers() {
+  try {
+    const res = await fetch("https://ring-call.metered.live/api/v1/turn/credentials?apiKey=Z6QXXcwp3_wObU38rnj7uYVW-UdQsL2LDUdbmxD7jCGHE3fI");
+    const creds = await res.json();
+    return { iceServers: creds };
+  } catch {
+    return { iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" }
+    ]};
+  }
+}
 
 let pc, localStream, roomCode, isInitiator = false;
 let micOn = true, camOn = true;
@@ -499,6 +503,7 @@ function switchToCall(code) {
 
 async function setupPeer(initiator) {
   isInitiator = initiator;
+  const ICE = await getIceServers();
   pc = new RTCPeerConnection(ICE);
 
   if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
