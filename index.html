@@ -463,19 +463,15 @@ function genCode() {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// fetch Metered TURN credentials
-async function getIceServers() {
-  try {
-    const res = await fetch("https://ring-call.metered.live/api/v1/turn/credentials?apiKey=Z6QXXcwp3_wObU38rnj7uYVW-UdQsL2LDUdbmxD7jCGHE3fI");
-    const creds = await res.json();
-    return { iceServers: creds };
-  } catch {
-    return { iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      { urls: "stun:stun1.l.google.com:19302" }
-    ]};
-  }
-}
+// WebRTC
+const ICE = { iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+]};
 
 let pc, localStream, roomCode, isInitiator = false;
 let micOn = true, camOn = true;
@@ -503,7 +499,6 @@ function switchToCall(code) {
 
 async function setupPeer(initiator) {
   isInitiator = initiator;
-  const ICE = await getIceServers();
   pc = new RTCPeerConnection(ICE);
 
   if (localStream) localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
@@ -590,6 +585,9 @@ $('roomCodeDisplay').onclick = () => {
 };
 
 $('createBtn').onclick = async () => {
+  if (firebaseConfig.databaseURL === 'PASTE_YOUR_DATABASE_URL_HERE') {
+    showToast('⚠️ set your Firebase databaseURL first!', 4000); return;
+  }
   await getMedia();
   switchToCall(myCode);
   $('connState').textContent = 'waiting for friend…';
@@ -598,6 +596,9 @@ $('createBtn').onclick = async () => {
 };
 
 $('joinBtn').onclick = async () => {
+  if (firebaseConfig.databaseURL === 'PASTE_YOUR_DATABASE_URL_HERE') {
+    showToast('⚠️ set your Firebase databaseURL first!', 4000); return;
+  }
   const code = $('joinInput').value.trim().toUpperCase();
   if (code.length < 4) { showToast('enter the 4-letter room code'); return; }
   await getMedia();
